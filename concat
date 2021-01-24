@@ -1,5 +1,17 @@
 #!env bash
-sox -n -r 24000 -c 1 silence.wav trim 0.0 3.0
-ls -1 | grep "tts.*\.mp3" | sort -n | sed -z s/\\n/\\nsilence.wav\\n/g | xargs sh -c 'sox $@ out.mp3' sh
-ls -1 | grep "[^(output)]\.mp3" | xargs rm
-rm silence.wav
+sox -n -r 24000 -c 1 short_silence.wav trim 0.0 0.5
+sox -n -r 24000 -c 1 long_silence.wav trim 0.0 3
+indices=()
+for file in $(ls -1 | sort -n | grep "[^(output)].mp3"); do
+    indices+=($(echo $file | cut -d'_' -f2))
+done
+indices=($(echo ${indices[@]} | tr ' ' '\n' | sort -nu))
+for index in "${indices[@]}"; do
+    files=$(ls -1 | grep "tts\_$index.*")
+    echo $files | sed -z s/\ /\\nshort_silence.wav\\n/g | xargs sh -c 'sox ${@:2} $1_out.mp3' sh $index
+done
+ls -1 | grep tts.*\.mp3 | xargs rm
+rm short_silence.wav
+ls -1 | grep ".*\_out\.mp3" | sort -n | sed -z s/\\n/\\nlong_silence.wav\\n/g | xargs sh -c 'sox $@ out.mp3' sh
+rm long_silence.wav
+ls -1 | grep ".*\_out\.mp3" | xargs rm

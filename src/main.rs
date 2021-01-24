@@ -19,9 +19,12 @@ fn main() {
                     section.split(' ').skip(2).collect::<Vec<_>>().join(" ")
                 );
             }
-            println!("{}", section);
             section = section.replace(';', ".");
             for (inner_idx, sentence) in section.split('.').enumerate() {
+                if sentence.len() > 200 {
+                    println!("{}", sentence);
+                    panic!()
+                }
                 let sentence = sentence.trim();
                 if sentence.is_empty() {
                     continue;
